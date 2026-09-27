@@ -1,0 +1,55 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg: #ffffff;
+  --bg-soft: #f6f6f4;
+  --ink: #0b0c0e;
+  --ink-soft: #5b5f66;
+  --line: #e7e7e3;
+  --accent: #4b3df0;
+  --font-display: "Space Grotesk", system-ui, sans-serif;
+  --font-body: "Inter", system-ui, sans-serif;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0b0c0e;
+    --bg-soft: #141519;
+    --ink: #f4f4f2;
+    --ink-soft: #9a9ea6;
+    --line: #25262b;
+    --accent: #8b7dff;
+  }
+}
+
+html {
+  scroll-padding-top: env(safe-area-inset-top, 0px);
+}
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-body);
+}
+
+.input {
+  @apply w-full rounded-[10px] border border-line bg-bg px-4 py-3 text-[15px] text-ink placeholder:text-ink-soft outline-none transition focus:border-accent focus:ring-1 focus:ring-accent;
+}
+
+.btn-primary {
+  @apply inline-flex items-center justify-center gap-2 rounded-[10px] bg-accent px-5 py-3 text-[15px] font-semibold text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50;
+}
+
+.btn-ghost {
+  @apply inline-flex items-center justify-center gap-2 rounded-[10px] border border-line bg-transparent px-5 py-3 text-[15px] font-semibold text-ink transition hover:bg-bg-soft;
+}
+
+.card {
+  @apply rounded-card border border-line bg-bg p-6;
+}
+
+.error-text {
+  @apply text-sm text-red-600;
+}
