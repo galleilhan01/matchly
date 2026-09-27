@@ -35,6 +35,7 @@ export default function LoginPage() {
         .from("profiles")
         .select("account_type, is_suspended")
         .eq("id", data.user.id)
+        .returns<{ account_type: "brand" | "creator" | "admin"; is_suspended: boolean }[]>()
         .single();
 
       if (profile?.is_suspended) {
