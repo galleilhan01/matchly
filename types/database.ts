@@ -77,10 +77,34 @@ export interface Campaign {
 export interface Database {
   public: {
     Tables: {
-      profiles: { Row: Profile; Insert: Partial<Profile>; Update: Partial<Profile> };
-      brand_profiles: { Row: BrandProfile; Insert: Partial<BrandProfile>; Update: Partial<BrandProfile> };
-      creator_profiles: { Row: CreatorProfile; Insert: Partial<CreatorProfile>; Update: Partial<CreatorProfile> };
-      campaigns: { Row: Campaign; Insert: Partial<Campaign>; Update: Partial<Campaign> };
+      profiles: {
+        Row: Profile;
+        Insert: Partial<Profile>;
+        Update: Partial<Profile>;
+        Relationships: [];
+      };
+      brand_profiles: {
+        Row: BrandProfile;
+        Insert: Partial<BrandProfile>;
+        Update: Partial<BrandProfile>;
+        Relationships: [];
+      };
+      creator_profiles: {
+        Row: CreatorProfile;
+        Insert: Partial<CreatorProfile>;
+        Update: Partial<CreatorProfile>;
+        Relationships: [];
+      };
+      campaigns: {
+        Row: Campaign;
+        Insert: Partial<Campaign>;
+        Update: Partial<Campaign>;
+        Relationships: [];
+      };
     };
+    Views: Record<string, never>;
+    Functions: Record<string, never>;
+    Enums: Record<string, never>;
+    CompositeTypes: Record<string, never>;
   };
 }
