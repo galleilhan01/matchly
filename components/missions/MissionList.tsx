@@ -27,8 +27,8 @@ export async function MissionList({ role, title, subtitle }: { role: "brand" | "
       : Promise.resolve({ data: [] as any[] }),
   ]);
 
-  const campaignById = new Map((campaigns ?? []).map((c: any) => [c.id, c]));
-  const otherName = new Map((others ?? []).map((o: any) => [o.id ?? o.profile_id, o.full_name ?? o.company_name]));
+  const campaignById = new Map<string, any>((campaigns ?? []).map((c: any) => [c.id, c] as [string, any]));
+  const otherName = new Map<string, any>((others ?? []).map((o: any) => [o.id ?? o.profile_id, o.full_name ?? o.company_name] as [string, any]));
 
   return (
     <div>

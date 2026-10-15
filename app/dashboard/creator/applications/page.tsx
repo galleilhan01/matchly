@@ -17,7 +17,7 @@ export default async function CreatorApplicationsPage() {
 
   const ids = (applications ?? []).map((a: any) => a.campaign_id);
   const { data: campaigns } = ids.length > 0 ? await supabase.from("campaigns").select("id, title, deadline").in("id", ids) : { data: [] as any[] };
-  const byId = new Map((campaigns ?? []).map((c: any) => [c.id, c]));
+  const byId = new Map<string, any>((campaigns ?? []).map((c: any) => [c.id, c] as [string, any]));
 
   return (
     <div>

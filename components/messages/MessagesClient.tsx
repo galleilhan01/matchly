@@ -46,7 +46,7 @@ export function MessagesClient({ role, userId, initialConversationId }: { role: 
     const nameById = new Map<string, string>();
     (names ?? []).forEach((n: any) => nameById.set(n.id, n.full_name));
     (brandNames ?? []).forEach((b: any) => b.company_name && nameById.set(b.profile_id, b.company_name));
-    const campaignById = new Map((campaigns ?? []).map((c: any) => [c.id, c.title]));
+    const campaignById = new Map<string, any>((campaigns ?? []).map((c: any) => [c.id, c.title] as [string, any]));
     const unreadBy = new Map<string, number>();
     (unreadRows ?? []).forEach((r: any) => unreadBy.set(r.conversation_id, (unreadBy.get(r.conversation_id) ?? 0) + 1));
     const lastBy = new Map<string, string>();

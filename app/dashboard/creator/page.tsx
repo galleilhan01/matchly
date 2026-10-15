@@ -25,14 +25,14 @@ export default async function CreatorDashboardPage() {
     campaignIds.length > 0
       ? await supabase.from("campaigns").select("id, title, budget_per_video_cents, deadline, niche, platform, brand_id").in("id", campaignIds)
       : { data: [] as any[] };
-  const campaignById = new Map((campaigns ?? []).map((c: any) => [c.id, c]));
+  const campaignById = new Map<string, any>((campaigns ?? []).map((c: any) => [c.id, c] as [string, any]));
 
   const brandIds = Array.from(new Set((campaigns ?? []).map((c: any) => c.brand_id)));
   const { data: brands } =
     brandIds.length > 0
       ? await supabase.from("brand_profiles").select("profile_id, company_name, logo_url").in("profile_id", brandIds)
       : { data: [] as any[] };
-  const brandById = new Map((brands ?? []).map((b: any) => [b.profile_id, b]));
+  const brandById = new Map<string, any>((brands ?? []).map((b: any) => [b.profile_id, b] as [string, any]));
 
   const appliedIds = new Set((applications ?? []).map((a: any) => a.campaign_id));
   const totalEarned = (payments ?? []).filter((p: any) => p.status === "released").reduce((s: number, p: any) => s + p.amount_creator_cents, 0);

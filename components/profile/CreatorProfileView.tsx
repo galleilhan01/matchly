@@ -16,7 +16,7 @@ export async function CreatorProfileView({ creatorId }: { creatorId: string }) {
 
   const brandIds = Array.from(new Set((reviews ?? []).map((r: any) => r.brand_id)));
   const { data: brands } = brandIds.length > 0 ? await supabase.from("brand_profiles").select("profile_id, company_name").in("profile_id", brandIds) : { data: [] as any[] };
-  const brandName = new Map((brands ?? []).map((b: any) => [b.profile_id, b.company_name]));
+  const brandName = new Map<string, any>((brands ?? []).map((b: any) => [b.profile_id, b.company_name] as [string, any]));
 
   const followers = (socials ?? []).reduce((s: number, x: any) => s + (x.followers ?? 0), 0);
   const eng = (socials ?? []).map((x: any) => Number(x.avg_engagement_rate ?? 0)).filter((v: number) => v > 0);

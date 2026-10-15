@@ -7,7 +7,7 @@ export default async function AdminCampaignsPage() {
   const { data: campaigns } = await supabase.from("campaigns").select("*").order("created_at", { ascending: false }).limit(200);
   const brandIds = Array.from(new Set((campaigns ?? []).map((c: any) => c.brand_id)));
   const { data: brands } = brandIds.length > 0 ? await supabase.from("brand_profiles").select("profile_id, company_name").in("profile_id", brandIds) : { data: [] as any[] };
-  const company = new Map((brands ?? []).map((b: any) => [b.profile_id, b.company_name]));
+  const company = new Map<string, any>((brands ?? []).map((b: any) => [b.profile_id, b.company_name] as [string, any]));
 
   return (
     <div>

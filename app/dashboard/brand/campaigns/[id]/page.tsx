@@ -21,8 +21,8 @@ export default async function CampaignDetailPage({ params }: { params: { id: str
     supabase.rpc("get_campaign_scores", { p_campaign_id: params.id }),
   ]);
 
-  const scoreByCreator = new Map((scores ?? []).map((s: any) => [s.creator_id, s]));
-  const missionByCreator = new Map((missions ?? []).map((m: any) => [m.creator_id, m]));
+  const scoreByCreator = new Map<string, any>((scores ?? []).map((s: any) => [s.creator_id, s] as [string, any]));
+  const missionByCreator = new Map<string, any>((missions ?? []).map((m: any) => [m.creator_id, m] as [string, any]));
   const appliedIds = new Set((applications ?? []).map((a: any) => a.creator_id));
 
   const recommended = (scores ?? []).filter((s: any) => !appliedIds.has(s.creator_id)).slice(0, 5);
@@ -36,8 +36,8 @@ export default async function CampaignDetailPage({ params }: { params: { id: str
         ])
       : [{ data: [] as any[] }, { data: [] as any[] }];
 
-  const profileById = new Map((profiles ?? []).map((p: any) => [p.id, p]));
-  const creatorById = new Map((creatorProfiles ?? []).map((c: any) => [c.profile_id, c]));
+  const profileById = new Map<string, any>((profiles ?? []).map((p: any) => [p.id, p] as [string, any]));
+  const creatorById = new Map<string, any>((creatorProfiles ?? []).map((c: any) => [c.profile_id, c] as [string, any]));
 
   const missionsByStatus: Record<string, number> = {};
   (missions ?? []).forEach((m: any) => {

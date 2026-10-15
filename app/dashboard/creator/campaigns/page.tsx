@@ -14,14 +14,14 @@ export default async function CreatorCampaignsPage() {
     supabase.from("applications").select("campaign_id").eq("creator_id", user!.id),
   ]);
 
-  const scoreById = new Map((scores ?? []).map((s: any) => [s.campaign_id, s.score]));
+  const scoreById = new Map<string, any>((scores ?? []).map((s: any) => [s.campaign_id, s.score] as [string, any]));
   const applied = new Set((applications ?? []).map((a: any) => a.campaign_id));
   const list = [...(campaigns ?? [])].sort((a: any, b: any) => (scoreById.get(b.id) ?? 0) - (scoreById.get(a.id) ?? 0));
 
   const brandIds = Array.from(new Set(list.map((c: any) => c.brand_id)));
   const { data: brands } =
     brandIds.length > 0 ? await supabase.from("brand_profiles").select("profile_id, company_name, logo_url").in("profile_id", brandIds) : { data: [] as any[] };
-  const brandById = new Map((brands ?? []).map((b: any) => [b.profile_id, b]));
+  const brandById = new Map<string, any>((brands ?? []).map((b: any) => [b.profile_id, b] as [string, any]));
 
   return (
     <div>

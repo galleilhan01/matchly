@@ -8,7 +8,7 @@ export default async function AdminReportsPage() {
   const { data: reports } = await supabase.from("reports").select("*").order("created_at", { ascending: false }).limit(200);
   const ids = Array.from(new Set((reports ?? []).flatMap((r: any) => [r.reporter_id, r.reported_profile_id]).filter(Boolean)));
   const { data: profiles } = ids.length > 0 ? await supabase.from("profiles").select("id, full_name").in("id", ids as string[]) : { data: [] as any[] };
-  const name = new Map((profiles ?? []).map((p: any) => [p.id, p.full_name]));
+  const name = new Map<string, any>((profiles ?? []).map((p: any) => [p.id, p.full_name] as [string, any]));
 
   return (
     <div>

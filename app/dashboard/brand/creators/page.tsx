@@ -24,9 +24,9 @@ export default async function FindCreatorsPage({ searchParams }: { searchParams:
   ]);
 
   const { data: scores } = sp.campaign ? await supabase.rpc("get_campaign_scores", { p_campaign_id: sp.campaign }) : { data: [] as any[] };
-  const scoreById = new Map((scores ?? []).map((s: any) => [s.creator_id, s.score]));
+  const scoreById = new Map<string, any>((scores ?? []).map((s: any) => [s.creator_id, s.score] as [string, any]));
 
-  const profileById = new Map((profiles ?? []).map((p: any) => [p.id, p]));
+  const profileById = new Map<string, any>((profiles ?? []).map((p: any) => [p.id, p] as [string, any]));
   const socialsByCreator = new Map<string, any[]>();
   (socials ?? []).forEach((s: any) => socialsByCreator.set(s.creator_id, [...(socialsByCreator.get(s.creator_id) ?? []), s]));
 
