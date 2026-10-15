@@ -39,11 +39,16 @@ export default async function CampaignDetailPage({ params }: { params: { id: str
   const profileById = new Map((profiles ?? []).map((p: any) => [p.id, p]));
   const creatorById = new Map((creatorProfiles ?? []).map((c: any) => [c.profile_id, c]));
 
+  const missionsByStatus: Record<string, number> = {};
+  (missions ?? []).forEach((m: any) => {
+    missionsByStatus[m.status] = (missionsByStatus[m.status] ?? 0) + 1;
+  });
+
   const stats = {
     applications: applications?.length ?? 0,
     pending: (applications ?? []).filter((a: any) => a.status === "pending").length,
     selected: missions?.length ?? 0,
-    missionsByStatus: (missions ?? []).reduce((acc: Record<string, number>, m: any) => ({ ...acc, [m.status]: (acc[m.status] ?? 0) + 1 }), {}),
+    missionsByStatus,
     creatorsNeeded: campaign.creators_needed,
     budgetPerVideoEuros: campaign.budget_per_video_cents / 100,
   };

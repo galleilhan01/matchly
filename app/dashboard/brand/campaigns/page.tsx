@@ -19,7 +19,10 @@ export default async function BrandCampaignsPage() {
   const { data: campaigns } = await supabase.from("campaigns").select("*").eq("brand_id", user!.id).order("created_at", { ascending: false });
   const ids = (campaigns ?? []).map((c: any) => c.id);
   const { data: applications } = ids.length > 0 ? await supabase.from("applications").select("campaign_id").in("campaign_id", ids) : { data: [] as any[] };
-  const countByCampaign = (applications ?? []).reduce((acc: Record<string, number>, a: any) => ({ ...acc, [a.campaign_id]: (acc[a.campaign_id] ?? 0) + 1 }), {});
+  const countByCampaign: Record<string, number> = {};
+  (applications ?? []).forEach((a: any) => {
+    countByCampaign[a.campaign_id] = (countByCampaign[a.campaign_id] ?? 0) + 1;
+  });
 
   return (
     <div>
