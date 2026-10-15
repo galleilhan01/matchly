@@ -1,48 +1,42 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { StatCard } from "@/components/dashboard/StatCard";
-
-function formatEuros(cents: number) {
-  return (cents / 100).toLocaleString("fr-FR", { style: "currency", currency: "EUR", maximumFractionDigits: 0 });
-}
+import { formatEuros, formatDate, MISSION_STATUS } from "@/lib/format";
 
 export default async function CreatorDashboardPage() {
   const supabase = createClient();
-
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const [{ data: applications }, { data: missions }, { data: payments }, { data: recommended }] = await Promise.all([
+  const [{ data: applications }, { data: missions }, { data: payments }, { data: scores }] = await Promise.all([
     supabase.from("applications").select("id, status, campaign_id").eq("creator_id", user!.id),
-    supabase.from("missions").select("id, status, campaign_id").eq("creator_id", user!.id),
+    supabase.from("missions").select("id, status, campaign_id").eq("creator_id", user!.id).order("created_at", { ascending: false }),
     supabase.from("payments").select("amount_creator_cents, status").eq("creator_id", user!.id),
-    supabase
-      .from("campaigns")
-      .select("id, title, platform, content_type, budget_per_video_cents, deadline, niche")
-      .eq("status", "published")
-      .order("created_at", { ascending: false })
-      .limit(5),
+    supabase.rpc("get_my_scores"),
   ]);
 
-  const { data: scores } =
-    recommended && recommended.length > 0
-      ? await supabase
-          .from("campaign_creator_scores")
-          .select("campaign_id, score")
-          .eq("creator_id", user!.id)
-          .in("campaign_id", recommended.map((c: any) => c.id))
+  const topScores = (scores ?? []).slice(0, 4);
+  const missionList = missions ?? [];
+  const activeMissions = missionList.filter((m: any) => m.status !== "completed");
+
+  const campaignIds = Array.from(new Set([...topScores.map((s: any) => s.campaign_id), ...missionList.map((m: any) => m.campaign_id)]));
+  const { data: campaigns } =
+    campaignIds.length > 0
+      ? await supabase.from("campaigns").select("id, title, budget_per_video_cents, deadline, niche, platform, brand_id").in("id", campaignIds)
       : { data: [] as any[] };
+  const campaignById = new Map((campaigns ?? []).map((c: any) => [c.id, c]));
 
-  const activeMissions = (missions ?? []).filter((m: any) => m.status !== "completed");
-  const totalEarned = (payments ?? [])
-    .filter((p: any) => p.status === "released")
-    .reduce((sum: number, p: any) => sum + p.amount_creator_cents, 0);
-  const pendingEarnings = (payments ?? [])
-    .filter((p: any) => p.status === "held" || p.status === "pending")
-    .reduce((sum: number, p: any) => sum + p.amount_creator_cents, 0);
+  const brandIds = Array.from(new Set((campaigns ?? []).map((c: any) => c.brand_id)));
+  const { data: brands } =
+    brandIds.length > 0
+      ? await supabase.from("brand_profiles").select("profile_id, company_name, logo_url").in("profile_id", brandIds)
+      : { data: [] as any[] };
+  const brandById = new Map((brands ?? []).map((b: any) => [b.profile_id, b]));
 
-  const appliedCampaignIds = new Set((applications ?? []).map((a: any) => a.campaign_id));
+  const appliedIds = new Set((applications ?? []).map((a: any) => a.campaign_id));
+  const totalEarned = (payments ?? []).filter((p: any) => p.status === "released").reduce((s: number, p: any) => s + p.amount_creator_cents, 0);
+  const pending = (payments ?? []).filter((p: any) => p.status === "held" || p.status === "pending").reduce((s: number, p: any) => s + p.amount_creator_cents, 0);
 
   return (
     <div>
@@ -55,53 +49,69 @@ export default async function CreatorDashboardPage() {
         <StatCard label="Missions actives" value={String(activeMissions.length)} />
         <StatCard label="Candidatures" value={String(applications?.length ?? 0)} />
         <StatCard label="Revenus perçus" value={formatEuros(totalEarned)} />
-        <StatCard label="En attente" value={formatEuros(pendingEarnings)} hint="Après validation des vidéos" />
+        <StatCard label="En attente" value={formatEuros(pending)} hint="Après validation des vidéos" />
       </div>
 
-      <div>
-        <h2 className="mb-4 font-display text-[18px] font-semibold text-ink">Campagnes recommandées</h2>
+      {activeMissions.length > 0 && (
+        <div className="mb-10">
+          <h2 className="mb-4 font-display text-[18px] font-semibold text-ink">Missions en cours</h2>
+          <div className="space-y-3">
+            {activeMissions.map((m: any) => {
+              const c: any = campaignById.get(m.campaign_id);
+              const st = MISSION_STATUS[m.status];
+              return (
+                <Link key={m.id} href={`/dashboard/creator/missions/${m.id}`} className="card flex items-center justify-between gap-4 transition hover:border-accent/40">
+                  <div className="min-w-0">
+                    <p className="truncate text-[15px] font-semibold text-ink">{c?.title ?? "Campagne"}</p>
+                    <p className="text-[13px] text-ink-soft">{brandById.get(c?.brand_id)?.company_name} · Échéance {formatDate(c?.deadline)}</p>
+                  </div>
+                  <span className={`flex-shrink-0 rounded-full px-2.5 py-0.5 text-[12px] font-semibold ${st?.className}`}>{st?.label}</span>
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
-        {!recommended || recommended.length === 0 ? (
-          <div className="card flex flex-col items-center gap-3 py-16 text-center">
+      <div>
+        <div className="mb-4 flex items-center justify-between">
+          <h2 className="font-display text-[18px] font-semibold text-ink">Campagnes recommandées</h2>
+          <Link href="/dashboard/creator/campaigns" className="text-[13.5px] font-medium text-accent">
+            Tout voir →
+          </Link>
+        </div>
+
+        {topScores.length === 0 ? (
+          <div className="card flex flex-col items-center gap-3 py-14 text-center">
             <span className="text-[32px]">🔍</span>
             <p className="text-[15px] font-semibold text-ink">Aucune campagne disponible pour le moment</p>
-            <p className="max-w-[360px] text-[14px] text-ink-soft">
-              Complétez votre profil pour améliorer vos recommandations dès qu'une campagne compatible est publiée.
+            <p className="max-w-[380px] text-[14px] text-ink-soft">
+              Complétez votre profil pour de meilleures recommandations dès qu'une campagne compatible est publiée.
             </p>
+            <Link href="/dashboard/creator/profile/edit" className="btn-primary mt-2">
+              Compléter mon profil
+            </Link>
           </div>
         ) : (
           <div className="space-y-3">
-            {recommended.map((campaign: any) => {
-              const score = (scores ?? []).find((s: any) => s.campaign_id === campaign.id);
-              const alreadyApplied = appliedCampaignIds.has(campaign.id);
-
+            {topScores.map((s: any) => {
+              const c: any = campaignById.get(s.campaign_id);
+              if (!c) return null;
+              const brand: any = brandById.get(c.brand_id);
               return (
-                <div key={campaign.id} className="card flex items-center gap-6">
+                <div key={s.campaign_id} className="card flex flex-col gap-4 sm:flex-row sm:items-center">
                   <div className="min-w-0 flex-1">
-                    <div className="mb-1.5 flex items-center gap-2">
-                      {score && (
-                        <span className="rounded-full bg-accent/10 px-2.5 py-0.5 text-[12px] font-semibold text-accent">
-                          {Math.round(score.score)}% compatible
-                        </span>
-                      )}
-                      {campaign.deadline && (
-                        <span className="text-[12.5px] text-ink-soft">
-                          Échéance : {new Date(campaign.deadline).toLocaleDateString("fr-FR")}
-                        </span>
-                      )}
+                    <div className="mb-1.5 flex flex-wrap items-center gap-2">
+                      <span className="rounded-full bg-accent/10 px-2.5 py-0.5 text-[12px] font-semibold text-accent">{s.score}% compatible</span>
+                      <span className="text-[12.5px] text-ink-soft">Échéance : {formatDate(c.deadline)}</span>
                     </div>
-                    <p className="truncate text-[15.5px] font-semibold text-ink">{campaign.title}</p>
+                    <p className="truncate text-[15.5px] font-semibold text-ink">{c.title}</p>
                     <p className="mt-1 text-[13px] text-ink-soft">
-                      {formatEuros(campaign.budget_per_video_cents)} / vidéo
-                      {campaign.niche ? ` · ${campaign.niche}` : ""}
+                      {brand?.company_name} · {formatEuros(c.budget_per_video_cents)} / vidéo{c.niche ? ` · ${c.niche}` : ""}
                     </p>
                   </div>
-
-                  <Link
-                    href={`/dashboard/creator/campaigns/${campaign.id}`}
-                    className={alreadyApplied ? "btn-ghost" : "btn-primary"}
-                  >
-                    {alreadyApplied ? "Candidature envoyée" : "Voir la campagne"}
+                  <Link href={`/dashboard/creator/campaigns/${c.id}`} className={appliedIds.has(c.id) ? "btn-ghost" : "btn-primary"}>
+                    {appliedIds.has(c.id) ? "Candidature envoyée" : "Voir la campagne"}
                   </Link>
                 </div>
               );

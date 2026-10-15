@@ -5,55 +5,42 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/Button";
 
-export function AcceptApplicationButton({
-  applicationId,
-  campaignId,
-  creatorId,
-  brandId,
-}: {
-  applicationId: string;
-  campaignId: string;
-  creatorId: string;
-  brandId: string;
-}) {
+export function AcceptApplicationButton({ applicationId }: { applicationId: string }) {
   const router = useRouter();
   const supabase = createClient();
-  const [loading, setLoading] = useState(false);
+  const [busy, setBusy] = useState<"accept" | "reject" | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  async function handleAccept() {
+  async function accept() {
     setError(null);
-    setLoading(true);
-    try {
-      const { error: appError } = await supabase
-        .from("applications")
-        .update({ status: "accepted" })
-        .eq("id", applicationId);
-      if (appError) throw appError;
+    setBusy("accept");
+    const { error: err } = await supabase.rpc("accept_application", { p_application_id: applicationId });
+    setBusy(null);
+    if (err) return setError(err.message);
+    router.refresh();
+  }
 
-      const { error: missionError } = await supabase.from("missions").insert({
-        application_id: applicationId,
-        campaign_id: campaignId,
-        creator_id: creatorId,
-        brand_id: brandId,
-        status: "accepted",
-      });
-      if (missionError) throw missionError;
-
-      router.refresh();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Erreur lors de l'acceptation.");
-    } finally {
-      setLoading(false);
-    }
+  async function reject() {
+    if (!confirm("Refuser cette candidature ?")) return;
+    setError(null);
+    setBusy("reject");
+    const { error: err } = await supabase.from("applications").update({ status: "rejected" }).eq("id", applicationId);
+    setBusy(null);
+    if (err) return setError(err.message);
+    router.refresh();
   }
 
   return (
-    <div>
-      <Button type="button" onClick={handleAccept} loading={loading} className="text-[13.5px]">
-        Sélectionner
-      </Button>
-      {error && <p className="error-text mt-1.5 max-w-[180px] text-right">{error}</p>}
+    <div className="flex flex-col items-end gap-2">
+      <div className="flex gap-2">
+        <Button type="button" variant="ghost" onClick={reject} loading={busy === "reject"} className="!px-3.5 !py-2 text-[13.5px]">
+          Refuser
+        </Button>
+        <Button type="button" onClick={accept} loading={busy === "accept"} className="!px-3.5 !py-2 text-[13.5px]">
+          Sélectionner
+        </Button>
+      </div>
+      {error && <p className="error-text max-w-[220px] text-right">{error}</p>}
     </div>
   );
 }

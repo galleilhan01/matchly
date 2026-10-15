@@ -56,9 +56,7 @@ export default function BrandOnboardingPage() {
     <div className="flex min-h-screen items-center justify-center bg-bg-soft px-6 py-12">
       <div className="w-full max-w-[520px] card">
         <div className="mb-6 flex items-center gap-2 text-[13px] font-medium text-ink-soft">
-          <span className="h-1.5 w-8 rounded-full bg-accent" />
-          <span className="h-1.5 w-8 rounded-full bg-line" />
-          Étape 1 sur 2
+          Bienvenue sur Matchly
         </div>
         <h1 className="font-display text-[24px] font-semibold text-ink">Parlez-nous de votre marque</h1>
         <p className="mt-1 mb-6 text-[14.5px] text-ink-soft">

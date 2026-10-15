@@ -14,33 +14,27 @@ const NAV_ITEMS: SidebarItem[] = [
 
 export default async function BrandDashboardLayout({ children }: { children: React.ReactNode }) {
   const supabase = createClient();
-
   const {
     data: { user },
   } = await supabase.auth.getUser();
-
   if (!user) redirect("/login");
 
-  const { data: profile } = await supabase.from("profiles").select("account_type").eq("id", user.id).single();
-
-  // Un créateur qui atterrit ici est redirigé vers son propre dashboard,
-  // plutôt que de voir une erreur ou des données qui ne le concernent pas.
+  const { data: profile } = await supabase.from("profiles").select("account_type, is_suspended").eq("id", user.id).single();
+  if (profile?.is_suspended) redirect("/suspended");
   if (profile?.account_type === "creator") redirect("/dashboard/creator");
+  if (profile?.account_type === "admin") redirect("/admin");
 
-  const { data: brand } = await supabase
-    .from("brand_profiles")
-    .select("company_name")
-    .eq("profile_id", user.id)
-    .single();
+  const { data: brand } = await supabase.from("brand_profiles").select("company_name").eq("profile_id", user.id).single();
 
   return (
-    <div className="flex min-h-screen">
+    <div className="min-h-screen md:flex">
       <DashboardSidebar
         items={NAV_ITEMS}
         accountLabel={brand?.company_name?.trim() || "Votre marque"}
         accountSubtitle="Compte marque"
+        userId={user.id}
       />
-      <main className="flex-1 overflow-y-auto bg-bg px-10 py-10">{children}</main>
+      <main className="min-w-0 flex-1 bg-bg px-4 py-6 md:px-10 md:py-10">{children}</main>
     </div>
   );
 }

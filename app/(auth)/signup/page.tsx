@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, FormEvent } from "react";
+import { useState, useEffect, FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
@@ -21,6 +21,12 @@ export default function SignupPage() {
   const [errors, setErrors] = useState<FormErrors>({});
   const [loading, setLoading] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
+  const [needsConfirmation, setNeedsConfirmation] = useState(false);
+
+  useEffect(() => {
+    const t = new URLSearchParams(window.location.search).get("type");
+    if (t === "brand" || t === "creator") setAccountType(t);
+  }, []);
 
   function validate(): boolean {
     const next: FormErrors = {};
@@ -42,7 +48,10 @@ export default function SignupPage() {
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
-        options: { data: { full_name: fullName, account_type: accountType } },
+        options: {
+          data: { full_name: fullName, account_type: accountType },
+          emailRedirectTo: `${window.location.origin}/api/auth/callback?next=/onboarding/${accountType}`,
+        },
       });
       if (error) throw error;
       if (!data.user) throw new Error("Compte non créé, réessayez.");
@@ -50,6 +59,12 @@ export default function SignupPage() {
       // Le profil de base (table `profiles`) est créé automatiquement
       // par un trigger Postgres `on_auth_user_created` côté Supabase
       // (voir schema.sql) qui lit `raw_user_meta_data`.
+
+      if (!data.session) {
+        // Confirmation par e-mail activée côté Supabase : pas encore de session.
+        setNeedsConfirmation(true);
+        return;
+      }
 
       router.push(accountType === "brand" ? "/onboarding/brand" : "/onboarding/creator");
     } catch (err) {
@@ -63,6 +78,23 @@ export default function SignupPage() {
     } finally {
       setLoading(false);
     }
+  }
+
+  if (needsConfirmation) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-bg-soft px-6 py-12">
+        <div className="card w-full max-w-[420px] text-center">
+          <p className="text-[32px]">✉️</p>
+          <h1 className="mt-2 font-display text-[22px] font-semibold text-ink">Vérifiez votre boîte mail</h1>
+          <p className="mt-2 text-[14.5px] text-ink-soft">
+            Nous avons envoyé un lien de confirmation à <strong className="text-ink">{email}</strong>. Cliquez dessus pour activer votre compte, puis connectez-vous.
+          </p>
+          <Link href="/login" className="btn-ghost mt-6">
+            Aller à la connexion
+          </Link>
+        </div>
+      </div>
+    );
   }
 
   return (

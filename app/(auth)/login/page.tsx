@@ -52,7 +52,7 @@ function LoginForm() {
       }
 
       const redirectedFrom = searchParams.get("redirectedFrom");
-      router.push(redirectedFrom || (profile?.account_type === "brand" ? "/dashboard/brand" : "/dashboard/creator"));
+      router.push(redirectedFrom || (profile?.account_type === "brand" ? "/dashboard/brand" : profile?.account_type === "admin" ? "/admin" : "/dashboard/creator"));
       router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Une erreur est survenue.");

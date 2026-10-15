@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Matchly — Connectez marques et créateurs UGC</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    box-sizing:border-box;
+    --bg:#ffffff;
+    --bg-soft:#f6f6f4;
+    --ink:#0b0c0e;
+    --ink-soft:#5b5f66;
+    --line:#e7e7e3;
+    --accent:#4b3df0;
+    --accent-ink:#ffffff;
+    padding-top:env(safe-area-inset-top,0px);
+    padding-bottom:env(safe-area-inset-bottom,0px);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#0b0c0e; --bg-soft:#141519; --ink:#f4f4f2; --ink-soft:#9a9ea6; --line:#25262b; --accent:#8b7dff; --accent-ink:#0b0c0e;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#0b0c0e; --bg-soft:#141519; --ink:#f4f4f2; --ink-soft:#9a9ea6; --line:#25262b; --accent:#8b7dff; --accent-ink:#0b0c0e;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-padding-top:env(safe-area-inset-top,0px); scroll-behavior:smooth;}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:'Inter',system-ui,sans-serif;-webkit-font-smoothing:antialiased;}
+  h1,h2,h3{font-family:'Space Grotesk',system-ui,sans-serif;margin:0;letter-spacing:-0.01em;}
+  p{margin:0;color:var(--ink-soft);line-height:1.6;}
+  a{color:inherit;text-decoration:none;}
+  .wrap{max-width:1120px;margin:0 auto;padding:0 24px;}
+  .btn{display:inline-flex;align-items:center;gap:8px;padding:12px 20px;border-radius:10px;font-weight:600;font-size:15px;cursor:pointer;border:1px solid transparent;transition:transform .15s ease, opacity .15s ease;}
+  .btn:active{transform:scale(0.97);}
+  .btn-primary{background:var(--accent);color:var(--accent-ink);}
+  .btn-primary:hover{opacity:.9;}
+  .btn-ghost{background:transparent;color:var(--ink);border-color:var(--line);}
+  .btn-ghost:hover{background:var(--bg-soft);}
+
+  header{position:sticky;top:0;background:color-mix(in srgb, var(--bg) 88%, transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);z-index:50;padding-top:env(safe-area-inset-top,0px);}
+  .nav{display:flex;align-items:center;justify-content:space-between;height:68px;}
+  .logo{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:20px;display:flex;align-items:center;gap:8px;}
+  .logo-mark{width:24px;height:24px;border-radius:7px;background:var(--accent);display:inline-block;}
+  .nav-links{display:flex;gap:28px;font-size:14px;color:var(--ink-soft);}
+  .nav-links a:hover{color:var(--ink);}
+  .nav-cta{display:flex;gap:10px;align-items:center;}
+  @media (max-width:760px){.nav-links{display:none;}}
+
+  .hero{padding:88px 0 72px;}
+  .hero-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:64px;align-items:center;}
+  @media (max-width:920px){.hero-grid{grid-template-columns:1fr;gap:48px;}}
+  .eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:13px;color:var(--ink-soft);border:1px solid var(--line);padding:6px 12px;border-radius:100px;margin-bottom:20px;}
+  .eyebrow-dot{width:6px;height:6px;border-radius:50%;background:var(--accent);}
+  .hero h1{font-size:clamp(34px,4.6vw,52px);line-height:1.08;font-weight:600;}
+  .hero p.lead{margin-top:20px;font-size:18px;max-width:460px;}
+  .hero-cta{display:flex;gap:12px;margin-top:32px;flex-wrap:wrap;}
+
+  /* AI matching demo visual */
+  .demo-card{background:var(--bg-soft);border:1px solid var(--line);border-radius:16px;padding:20px;}
+  .demo-top{font-size:13px;color:var(--ink-soft);margin-bottom:10px;}
+  .demo-input{background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:14px;font-size:13.5px;color:var(--ink);line-height:1.5;}
+  .demo-arrow{display:flex;align-items:center;justify-content:center;padding:10px 0;color:var(--ink-soft);font-size:12px;}
+  .demo-tags{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px;}
+  .tag{font-size:12px;padding:5px 10px;border-radius:100px;background:var(--bg);border:1px solid var(--line);color:var(--ink-soft);}
+  .match-row{display:flex;align-items:center;gap:10px;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-top:8px;}
+  .avatar{width:30px;height:30px;border-radius:50%;flex-shrink:0;}
+  .match-name{font-size:13.5px;font-weight:600;flex:1;}
+  .match-score{font-size:13px;font-weight:600;color:var(--accent);}
+  .bar{height:4px;border-radius:100px;background:var(--line);width:100%;margin-top:4px;overflow:hidden;}
+  .bar-fill{height:100%;background:var(--accent);border-radius:100px;transform-origin:left;transform:scaleX(0);animation:grow 1.1s ease forwards;}
+  @keyframes grow{to{transform:scaleX(1);}}
+
+  section{padding:64px 0;border-top:1px solid var(--line);}
+  .section-head{max-width:520px;margin-bottom:40px;}
+  .section-head .kicker{font-size:13px;color:var(--accent);font-weight:600;margin-bottom:8px;}
+  .section-head h2{font-size:clamp(24px,3vw,32px);font-weight:600;}
+  .section-head p{margin-top:10px;font-size:15.5px;}
+
+  .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;}
+  @media (max-width:760px){.steps{grid-template-columns:1fr;}}
+  .step{border:1px solid var(--line);border-radius:14px;padding:24px;}
+  .step-num{font-family:'Space Grotesk';font-weight:600;font-size:14px;color:var(--accent);margin-bottom:14px;}
+  .step h3{font-size:17px;font-weight:600;margin-bottom:8px;}
+  .step p{font-size:14.5px;}
+
+  .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
+  @media (max-width:760px){.grid-2{grid-template-columns:1fr;}}
+  .feature{border:1px solid var(--line);border-radius:14px;padding:22px;}
+  .feature h3{font-size:15.5px;font-weight:600;margin-bottom:6px;}
+  .feature p{font-size:14px;}
+
+  .campaign-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;}
+  @media (max-width:920px){.campaign-cards{grid-template-columns:1fr 1fr;}}
+  @media (max-width:600px){.campaign-cards{grid-template-columns:1fr;}}
+  .campaign{border:1px solid var(--line);border-radius:14px;padding:18px;}
+  .campaign .cat{font-size:12px;color:var(--accent);font-weight:600;margin-bottom:10px;}
+  .campaign h3{font-size:15.5px;font-weight:600;margin-bottom:6px;}
+  .campaign p{font-size:13.5px;margin-bottom:14px;}
+  .campaign-meta{display:flex;justify-content:space-between;font-size:12.5px;color:var(--ink-soft);border-top:1px solid var(--line);padding-top:12px;}
+
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:24px;text-align:left;}
+  @media (max-width:700px){.stats{grid-template-columns:1fr 1fr;}}
+  .stat b{display:block;font-family:'Space Grotesk';font-size:clamp(26px,3.4vw,36px);font-weight:600;}
+  .stat span{font-size:13.5px;color:var(--ink-soft);}
+
+  .testimonials{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;}
+  @media (max-width:920px){.testimonials{grid-template-columns:1fr;}}
+  .testi{border:1px solid var(--line);border-radius:14px;padding:22px;display:flex;flex-direction:column;gap:14px;}
+  .testi p.quote{font-size:14.5px;color:var(--ink);}
+  .testi-who{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--ink-soft);}
+  .testi-who .avatar{width:32px;height:32px;}
+  .example-flag{font-size:11px;color:var(--ink-soft);border:1px solid var(--line);padding:3px 8px;border-radius:100px;width:fit-content;}
+
+  .faq-item{border-top:1px solid var(--line);padding:18px 0;}
+  .faq-item:first-child{border-top:none;}
+  .faq-q{display:flex;justify-content:space-between;align-items:center;cursor:pointer;font-size:15px;font-weight:600;}
+  .faq-a{font-size:14.5px;margin-top:10px;max-width:640px;display:none;}
+  .faq-item.open .faq-a{display:block;}
+  .faq-plus{transition:transform .2s ease;color:var(--ink-soft);}
+  .faq-item.open .faq-plus{transform:rotate(45deg);}
+
+  .cta-band{background:var(--ink);color:var(--bg);border-radius:20px;padding:48px 40px;display:flex;justify-content:space-between;align-items:center;gap:24px;flex-wrap:wrap;}
+  .cta-band h2{font-size:26px;font-weight:600;color:var(--bg);}
+  .cta-band p{color:color-mix(in srgb, var(--bg) 65%, transparent);margin-top:6px;}
+
+  footer{border-top:1px solid var(--line);padding:48px 0 40px;}
+  .foot-grid{display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:32px;}
+  @media (max-width:700px){.foot-grid{grid-template-columns:1fr 1fr;}}
+  .foot-col h4{font-size:13px;font-weight:600;margin-bottom:12px;}
+  .foot-col a{display:block;font-size:13.5px;color:var(--ink-soft);margin-bottom:9px;}
+  .foot-col a:hover{color:var(--ink);}
+  .foot-bottom{margin-top:36px;padding-top:20px;border-top:1px solid var(--line);font-size:13px;color:var(--ink-soft);display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap nav">
+    <div class="logo"><span class="logo-mark"></span>Matchly</div>
+    <nav class="nav-links">
+      <a href="#comment-ca-marche">Comment ça marche</a>
+      <a href="#campagnes">Campagnes</a>
+      <a href="#temoignages">Témoignages</a>
+      <a href="#faq">FAQ</a>
+    </nav>
+    <div class="nav-cta">
+      <a class="btn btn-ghost" href="/login">Connexion</a>
+      <a class="btn btn-primary" href="/signup">Commencer</a>
+    </div>
+  </div>
+</header>
+
+<section class="hero" style="border-top:none;">
+  <div class="wrap hero-grid">
+    <div>
+      <div class="eyebrow"><span class="eyebrow-dot"></span>Matching propulsé par IA</div>
+      <h1>Connectez les marques aux créateurs qui correspondent vraiment à leurs campagnes.</h1>
+      <p class="lead">Décrivez votre besoin en une phrase. Notre IA structure la campagne, recommande les créateurs les plus pertinents et pilote tout le processus jusqu'à la livraison des vidéos.</p>
+      <div class="hero-cta">
+        <a class="btn btn-primary" href="/signup?type=brand">Je suis une marque</a>
+        <a class="btn btn-ghost" href="/signup?type=creator">Je suis créateur</a>
+      </div>
+    </div>
+
+    <div class="demo-card">
+      <div class="demo-top">Aperçu — brief converti automatiquement</div>
+      <div class="demo-input">« Je cherche 5 créateurs français, 18–25 ans, pour des TikTok naturels sur une marque de vêtements. Budget 100 € / vidéo. »</div>
+      <div class="demo-arrow">↓ analysé par l'IA</div>
+      <div class="demo-tags">
+        <span class="tag">TikTok</span><span class="tag">France</span><span class="tag">18–25 ans</span>
+        <span class="tag">Mode</span><span class="tag">5 créateurs</span><span class="tag">100 €/vidéo</span>
+      </div>
+      <div class="demo-top" style="margin-bottom:0;">Créateurs recommandés</div>
+      <div class="match-row">
+        <div class="avatar" style="background:#e8c39e;"></div>
+        <div style="flex:1;"><div class="match-name">Léa Fontaine</div><div class="bar"><div class="bar-fill" style="animation-delay:.1s; --w:96%;"></div></div></div>
+        <div class="match-score">96%</div>
+      </div>
+      <div class="match-row">
+        <div class="avatar" style="background:#a9c9e8;"></div>
+        <div style="flex:1;"><div class="match-name">Noah Girard</div><div class="bar"><div class="bar-fill" style="animation-delay:.25s;"></div></div></div>
+        <div class="match-score">89%</div>
+      </div>
+      <div class="match-row">
+        <div class="avatar" style="background:#cbe8a9;"></div>
+        <div style="flex:1;"><div class="match-name">Inès Rousseau</div><div class="bar"><div class="bar-fill" style="animation-delay:.4s;"></div></div></div>
+        <div class="match-score">81%</div>
+      </div>
+      <p style="font-size:11.5px;margin-top:12px;">Score indicatif généré par l'IA — une recommandation, pas une garantie de résultat.</p>
+    </div>
+  </div>
+</section>
+
+<section id="comment-ca-marche">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="kicker">Fonctionnement</div>
+      <h2>Trois étapes, sans friction</h2>
+      <p>Que vous soyez une marque ou un créateur, le parcours est pensé pour être compris en moins de 30 secondes.</p>
+    </div>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">01</div>
+        <h3>Décrivez votre besoin</h3>
+        <p>La marque écrit une phrase simple. L'IA génère le brief complet : plateforme, cible, niche, budget, livrables.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">02</div>
+        <h3>Recevez des recommandations</h3>
+        <p>Les créateurs compatibles sont classés par score IA. La marque choisit qui contacter ou sélectionner.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">03</div>
+        <h3>Produisez et validez</h3>
+        <p>Le créateur livre sa vidéo, la marque valide ou demande une modification, le paiement est débloqué automatiquement.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="section-head">
+      <div class="kicker">Pourquoi Matchly</div>
+      <h2>Pensé pour les deux côtés du marché</h2>
+    </div>
+    <div class="grid-2">
+      <div class="feature"><h3>Brief généré par IA</h3><p>Plus besoin de remplir des formulaires interminables : l'IA structure votre campagne à partir d'une phrase.</p></div>
+      <div class="feature"><h3>Score de compatibilité</h3><p>Chaque créateur est évalué selon les critères réels de la campagne — pays, niche, audience, style de contenu.</p></div>
+      <div class="feature"><h3>Suivi de mission en temps réel</h3><p>De la candidature à la validation finale, chaque étape est visible sur une timeline claire.</p></div>
+      <div class="feature"><h3>Paiement sécurisé</h3><p>La marque paie la plateforme, le créateur est payé à la validation. Aucune donnée bancaire stockée directement.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="campagnes">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="kicker">Exemples</div>
+      <h2>Exemples de campagnes</h2><p>Exemples illustratifs, à titre indicatif.</p>
+    </div>
+    <div class="campaign-cards">
+      <div class="campaign"><div class="cat">Mode</div><h3>TikTok naturel — nouvelle collection</h3><p>5 créateurs, 18–25 ans, France, ton spontané.</p><div class="campaign-meta"><span>100 €/vidéo</span><span>12 candidatures</span></div></div>
+      <div class="campaign"><div class="cat">Beauté</div><h3>Unboxing Instagram Reels</h3><p>8 créatrices, niche skincare, audience FR/BE.</p><div class="campaign-meta"><span>150 €/vidéo</span><span>27 candidatures</span></div></div>
+      <div class="campaign"><div class="cat">Tech</div><h3>Test produit YouTube Shorts</h3><p>3 créateurs tech, avis honnête, format court.</p><div class="campaign-meta"><span>200 €/vidéo</span><span>9 candidatures</span></div></div>
+    </div>
+  </div>
+</section>
+
+
+
+<section id="temoignages">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="kicker">Témoignages</div>
+      <h2>Ce qu'en disent marques et créateurs</h2>
+      <p>Exemples illustratifs à titre indicatif.</p>
+    </div>
+    <div class="testimonials">
+      <div class="testi">
+        <span class="example-flag">Exemple</span>
+        <p class="quote">« On a reçu nos premières candidatures qualifiées en moins de 24h, sans avoir à trier des dizaines de profils hors sujet. »</p>
+        <div class="testi-who"><div class="avatar" style="background:#e8c39e;"></div>Camille, marque de cosmétique</div>
+      </div>
+      <div class="testi">
+        <span class="example-flag">Exemple</span>
+        <p class="quote">« Le score de compatibilité m'a évité de postuler à des campagnes où je n'avais aucune chance d'être retenu. »</p>
+        <div class="testi-who"><div class="avatar" style="background:#a9c9e8;"></div>Yanis, créateur UGC</div>
+      </div>
+      <div class="testi">
+        <span class="example-flag">Exemple</span>
+        <p class="quote">« La messagerie et le suivi de mission remplacent complètement nos échanges par mail et nos tableurs de suivi. »</p>
+        <div class="testi-who"><div class="avatar" style="background:#cbe8a9;"></div>Sofia, responsable marketing</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="faq">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="kicker">FAQ</div>
+      <h2>Questions fréquentes</h2>
+    </div>
+    <div id="faq-list">
+      <div class="faq-item open">
+        <div class="faq-q">Comment fonctionne le score de compatibilité IA ? <span class="faq-plus">+</span></div>
+        <div class="faq-a">Il s'agit d'une recommandation algorithmique basée sur les critères de la campagne (niche, audience, localisation, style de contenu). Ce n'est pas une garantie de performance ou de résultat.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">Comment les paiements sont-ils gérés ? <span class="faq-plus">+</span></div>
+        <div class="faq-a">La marque paie la plateforme, qui reverse le créateur une fois la vidéo validée, après déduction d'une commission. Aucune donnée bancaire n'est stockée directement par Matchly.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">Puis-je utiliser Matchly gratuitement en tant que créateur ? <span class="faq-plus">+</span></div>
+        <div class="faq-a">Oui, la création de profil et la candidature aux campagnes sont gratuites pour les créateurs.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">Que se passe-t-il si je ne suis pas satisfait d'une vidéo ? <span class="faq-plus">+</span></div>
+        <div class="faq-a">Vous pouvez demander une modification directement depuis le suivi de mission avant de valider et de déclencher le paiement.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section style="border-bottom:none;">
+  <div class="wrap">
+    <div class="cta-band">
+      <div>
+        <h2>Prêt à lancer votre première campagne ?</h2>
+        <p>Créez votre compte en moins de deux minutes.</p>
+      </div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;">
+        <a class="btn btn-primary" href="/signup?type=brand">Je suis une marque</a>
+        <a class="btn btn-ghost" style="border-color:color-mix(in srgb, var(--bg) 30%, transparent);" href="/signup?type=creator">Je suis créateur</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="foot-grid">
+      <div class="foot-col">
+        <div class="logo" style="margin-bottom:10px;"><span class="logo-mark"></span>Matchly</div>
+        <p style="font-size:13.5px;">La plateforme qui connecte marques et créateurs UGC grâce à l'IA.</p>
+      </div>
+      <div class="foot-col"><h4>Produit</h4><a href="#comment-ca-marche">Fonctionnement</a><a href="#campagnes">Campagnes</a><a href="#faq">FAQ</a></div>
+      <div class="foot-col"><h4>Compte</h4><a href="/login">Connexion</a><a href="/signup?type=brand">Inscription marque</a><a href="/signup?type=creator">Inscription créateur</a></div>
+      
+    </div>
+    <div class="foot-bottom">
+      <span>© 2026 Matchly. Tous droits réservés.</span>
+      <span></span>
+    </div>
+  </div>
+</footer>
+
+<script>
+  document.querySelectorAll('.faq-q').forEach(function(q){
+    q.addEventListener('click', function(){
+      var item = q.closest('.faq-item');
+      var isOpen = item.classList.contains('open');
+      document.querySelectorAll('.faq-item').forEach(function(i){ i.classList.remove('open'); });
+      if(!isOpen) item.classList.add('open');
+    });
+  });
+</script>
+</body>
+</html>
